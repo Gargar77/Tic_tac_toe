@@ -1,13 +1,16 @@
-# DON'T EDIT ME!
+
 
 class Board
   attr_reader :rows
 
   def self.blank_grid
     Array.new(3) { Array.new(3) }
+    # this class variable will create a new 3x3 grid wihtout an instance
   end
 
   def initialize(rows = self.class.blank_grid)
+    #self.class will be able to access its own class method.
+    #in this case, its accessing Board::blank_grid
     @rows = rows
   end
 
@@ -24,31 +27,36 @@ class Board
   end
 
   def cols
+    #this method does what Array#transpose does.
+    #it creates an array of columns
     cols = [[], [], []]
     @rows.each do |row|
       row.each_with_index do |mark, col_idx|
         cols[col_idx] << mark
       end
     end
-
     cols
   end
 
   def diagonals
-    down_diag = [[0, 0], [1, 1], [2, 2]]
-    up_diag = [[0, 2], [1, 1], [2, 0]]
+    down_diag = [[0, 0], [1, 1], [2, 2]] #down diag positions
+    up_diag = [[0, 2], [1, 1], [2, 0]]   #up diag positions
 
     [down_diag, up_diag].map do |diag|
       # Note the `row, col` inside the block; this unpacks, or
       # "destructures" the argument. Read more here:
-      # http://tony.pitluga.com/2011/08/08/destructuring-with-ruby.html
+      # https://thoughtbot.com/blog/stupid-ruby-tricks
+
       diag.map { |row, col| @rows[row][col] }
     end
   end
 
   def dup
     duped_rows = rows.map(&:dup)
+    #outputs a duplicate of the  current rows
     self.class.new(duped_rows)
+    #this is then put in a new class
+    #we use self.class so that it uses the same class this method is in
   end
 
   def empty?(pos)
@@ -87,7 +95,13 @@ end
 # unconcerned with how moves are processed.
 
 class TicTacToe
+
   class IllegalMoveError < RuntimeError
+    #this allows IllegalMoveError class to inheret RuntimeError class
+    # RuntimeError class : https://ruby-doc.org/core-2.5.0/RuntimeError.html
+    # so whenever you get an error that usually causes RuntimeError to be called,
+    #you will instead see IllegalMoveError
+    #notice how this will only happen in a TicTacToe instance
   end
 
   attr_reader :board, :players, :turn
@@ -128,10 +142,14 @@ class TicTacToe
 
   def play_turn
     loop do
+      #useful if you want to loop without a beggining boolean
+      #in this case it will only stop with a break keyword
       current_player = self.players[self.turn]
       pos = current_player.move(self, self.turn)
 
       break if place_mark(pos, self.turn)
+      #this will break if the return value of #place_mark == true
+      #this means that the player successfully placed a mark.
     end
 
     # swap next whose turn it will be next
@@ -173,6 +191,8 @@ class ComputerPlayer
   end
 
   def move(game, mark)
+    #checks for a winning move, 
+    #if winner_move returns nil, then it does random_move
     winner_move(game, mark) || random_move(game)
   end
 
@@ -180,17 +200,24 @@ class ComputerPlayer
   def winner_move(game, mark)
     (0..2).each do |row|
       (0..2).each do |col|
+        #duplicates current board state
         board = game.board.dup
+        #will iterate through each position in the board
         pos = [row, col]
 
         next unless board.empty?(pos)
+        #if the position happens to be empty, 
+        #it will mark it
         board[pos] = mark
-
+        #return that position only if that position lets the computer win the game
         return pos if board.winner == mark
+        #the each loop will iterte to another position if pos is not returned
+        #each iteration will make a completely new duplpicate of the board and will repeat the previous logic.
       end
     end
 
-    # no winning move
+    # if at the end of iterating through the whole board, pos is not returned, then there is no winning move
+    #therefore nil is returned
     nil
   end
 
@@ -205,7 +232,7 @@ class ComputerPlayer
   end
 end
 
-if __FILE__ == $PROGRAM_NAME
+if __FILE__ == $PROGRAM_NAME  # if we are running as script
   puts "Play the dumb computer!"
   hp = HumanPlayer.new("Ned")
   cp = ComputerPlayer.new
